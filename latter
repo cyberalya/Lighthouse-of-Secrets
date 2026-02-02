@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lighthouse of Secrets - Curhat Online</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;500;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sea-blue: #0f172a;
+        }
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(to bottom, #020617, #1e3a8a, #0ea5e9);
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            color: white;
+        }
+        .paper-font {
+            font-family: 'Special Elite', cursive;
+        }
+        .bottle-anim {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        .hanyut-anim {
+            animation: driftAway 4s forwards;
+        }
+        @keyframes driftAway {
+            to { transform: translateX(100vw) translateY(-100px) scale(0); opacity: 0; }
+        }
+        .lighthouse-beam {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            width: 1500px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            transform-origin: left center;
+            animation: rotateBeam 12s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes rotateBeam {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #adminList::-webkit-scrollbar {
+            width: 6px;
+        }
+        #adminList::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
+        #adminList::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="lighthouse-beam"></div>
+
+    <div id="app" class="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
+        
+        <header class="absolute top-8 text-center">
+            <h1 class="text-4xl font-bold tracking-[0.3em] uppercase drop-shadow-lg text-blue-100">Lighthouse</h1>
+            <p class="text-xs opacity-60 mt-1">Ruang aman untuk setiap cerita yang ingin dilepaskan.</p>
+        </header>
+
+        <!-- VIEW 1: USER UTAMA -->
+        <div id="userView" class="w-full max-w-lg bg-white/5 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/10">
+            <div id="formSection">
+                <h2 class="text-2xl mb-6 font-semibold text-center text-blue-200">Hanyutkan Bebanmu</h2>
+                <textarea id="curhatInput" class="w-full h-48 p-5 rounded-2xl bg-black/20 border border-white/20 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-blue-400 paper-font text-lg shadow-inner" placeholder="Tuliskan apa yang ingin kamu lepaskan hari ini..."></textarea>
+                
+                <div class="mt-6 flex flex-col gap-4">
+                    <button onclick="hanyutkanBotol()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-4 rounded-2xl font-bold transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl">
+                        Kirim Pesan dalam Botol
+                    </button>
+                    <button onclick="switchView('checkReply')" class="text-sm text-blue-300 hover:text-white transition-colors underline text-center">Cek balasan dari Penjaga</button>
+                </div>
+            </div>
+
+            <div id="animationSection" class="hidden text-center py-12">
+                <div class="text-7xl mb-6 bottle-anim inline-block">🍾</div>
+                <p class="paper-font text-xl">Botolmu sedang mengarungi samudera...</p>
+                <div class="mt-8 p-4 bg-blue-900/40 rounded-xl border border-blue-400/30">
+                    <p class="text-xs uppercase tracking-widest opacity-60 mb-1">Kode Rahasiamu</p>
+                    <p id="uniqueCodeDisplay" class="text-2xl font-bold tracking-widest text-blue-300"></p>
+                </div>
+                <p class="text-[10px] mt-4 opacity-50 italic">*Simpan kode ini untuk melihat balasan nanti.</p>
+                <button onclick="window.location.reload()" class="mt-8 text-sm bg-white/10 px-6 py-2 rounded-full hover:bg-white/20 transition-all">Tulis Cerita Baru</button>
+            </div>
+        </div>
+
+        <!-- VIEW 2: CEK BALASAN -->
+        <div id="checkReplyView" class="hidden w-full max-w-md bg-white/5 backdrop-blur-xl p-8 rounded-3xl border border-white/10 shadow-2xl">
+            <h2 class="text-2xl mb-6 font-semibold text-center text-cyan-200">Kotak Surat Pribadi</h2>
+            <div class="space-y-4">
+                <input id="codeInput" type="text" placeholder="Masukkan 6 Digit Kode" class="w-full p-4 rounded-xl bg-black/20 border border-white/20 text-center text-xl font-bold tracking-widest focus:ring-2 focus:ring-cyan-400 outline-none uppercase">
+                <button onclick="findReply()" class="w-full bg-cyan-600 hover:bg-cyan-500 py-4 rounded-xl font-bold shadow-lg transition-all">Cari Botol Balikan</button>
+            </div>
+            
+            <div id="replyResult" class="mt-8 p-6 bg-white/10 rounded-2xl hidden paper-font leading-relaxed border-l-4 border-cyan-400"></div>
+            
+            <button onclick="switchView('user')" class="mt-8 text-sm block mx-auto opacity-40 hover:opacity-100 transition-opacity">← Kembali ke Pantai</button>
+        </div>
+
+        <!-- VIEW 3: LOGIN ADMIN -->
+        <div id="loginAdminView" class="hidden w-full max-w-sm bg-slate-900/90 p-8 rounded-3xl border border-yellow-500/50 shadow-2xl">
+            <div class="text-center mb-6">
+                <div class="text-4xl mb-2">🔑</div>
+                <h2 class="text-xl font-bold text-yellow-500 uppercase tracking-widest">Akses Penjaga</h2>
+                <p class="text-[10px] opacity-50">Wilayah Khusus Bimbingan Konseling</p>
+            </div>
+            <div class="space-y-4">
+                <input id="adminUser" type="text" placeholder="Username" class="w-full p-3 rounded-lg bg-white/5 border border-white/20 outline-none focus:border-yellow-500/50">
+                <input id="adminPin" type="password" placeholder="PIN Rahasia" class="w-full p-3 rounded-lg bg-white/5 border border-white/20 outline-none focus:border-yellow-500/50">
+                <button onclick="loginAdmin()" class="w-full bg-yellow-600 hover:bg-yellow-500 text-black font-bold py-3 rounded-lg transition-all">Masuk Mercusuar</button>
+            </div>
+            <button onclick="switchView('user')" class="mt-6 text-xs block mx-auto opacity-50 hover:underline">Batal</button>
+        </div>
+
+        <!-- VIEW 4: DASHBOARD ADMIN -->
+        <div id="adminView" class="hidden w-full max-w-5xl bg-slate-950/95 p-8 rounded-3xl border-2 border-yellow-600/30 shadow-2xl flex flex-col h-[80vh]">
+            <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-yellow-500 tracking-tighter uppercase">Pantai Mercusuar</h2>
+                    <p class="text-[10px] opacity-50" id="bottleCount">Memuat data botol...</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="exportData()" class="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white px-4 py-2 rounded-xl text-[10px] font-bold transition-all uppercase">Simpan File</button>
+                    <button onclick="logoutAdmin()" class="bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white px-4 py-2 rounded-xl text-[10px] font-bold transition-all uppercase">Keluar</button>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto pr-2" id="adminList"></div>
+        </div>
+
+        <footer class="absolute bottom-6">
+            <button onclick="switchView('login')" class="text-[10px] opacity-20 hover:opacity-100 transition-all uppercase tracking-[0.2em] font-bold py-2 px-4 border border-white/20 rounded-full">Gatekeeper Access</button>
+        </footer>
+
+    </div>
+
+    <!-- MODAL BALAS ADMIN -->
+    <div id="replyModal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-[100] backdrop-blur-sm">
+        <div class="bg-slate-900 w-full max-w-lg p-8 rounded-3xl border border-blue-500/50 shadow-2xl">
+            <h3 class="text-xl mb-4 font-bold text-blue-400">Tulis Kata Semangat</h3>
+            <div class="bg-black/30 p-4 rounded-xl mb-6 max-h-40 overflow-y-auto border border-white/5">
+                <p id="curhatOriginal" class="text-sm italic opacity-80 paper-font"></p>
+            </div>
+            <textarea id="replyText" class="w-full h-40 bg-white/5 p-4 rounded-xl mb-6 border border-white/10 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Berikan balasan yang hangat..."></textarea>
+            <div class="flex gap-3">
+                <button id="sendReplyBtn" class="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold shadow-lg transition-all">Kirim Balasan</button>
+                <button onclick="closeReplyModal()" class="px-6 py-3 bg-slate-800 rounded-xl hover:bg-slate-700 transition-all">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // -- KREDENSIAL --
+        const ADMIN_CREDENTIALS = {
+            user: "bimbingan konseling", 
+            pin: "123456"  
+        };
+
+        // -- INISIALISASI DATABASE --
+        let bottles = [];
+        
+        // Memuat data segera saat script dijalankan
+        function loadInitialData() {
+            const savedData = localStorage.getItem('lighthouse_bottles');
+            if (savedData) {
+                try {
+                    bottles = JSON.parse(savedData);
+                    console.log("Data berhasil dimuat:", bottles.length, "botol ditemukan.");
+                } catch (e) {
+                    console.error("Gagal memuat data lama:", e);
+                    bottles = [];
+                }
+            }
+        }
+        
+        loadInitialData();
+
+        let currentEditingId = null;
+        let isAdminLoggedIn = false;
+
+        function switchView(view) {
+            ['userView', 'checkReplyView', 'loginAdminView', 'adminView'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            
+            if(view === 'user') document.getElementById('userView').classList.remove('hidden');
+            if(view === 'checkReply') document.getElementById('checkReplyView').classList.remove('hidden');
+            if(view === 'login') {
+                if(isAdminLoggedIn) switchView('admin');
+                else document.getElementById('loginAdminView').classList.remove('hidden');
+            }
+            if(view === 'admin') {
+                if(!isAdminLoggedIn) return switchView('login');
+                document.getElementById('adminView').classList.remove('hidden');
+                renderAdminList();
+            }
+        }
+
+        // -- USER LOGIC --
+        function hanyutkanBotol() {
+            const text = document.getElementById('curhatInput').value.trim();
+            if(!text) return;
+
+            const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const newBottle = {
+                id: Date.now(),
+                code: code,
+                message: text,
+                reply: "",
+                timestamp: new Date().toLocaleString('id-ID'),
+                status: 'unread'
+            };
+
+            // Tambahkan ke memori dan simpan ke localStorage
+            bottles.push(newBottle);
+            saveData();
+
+            document.getElementById('formSection').classList.add('hidden');
+            document.getElementById('animationSection').classList.remove('hidden');
+            document.getElementById('uniqueCodeDisplay').innerText = code;
+            
+            document.querySelector('.bottle-anim').classList.add('hanyut-anim');
+        }
+
+        function findReply() {
+            const code = document.getElementById('codeInput').value.toUpperCase().trim();
+            // Ambil data terbaru dari localStorage sebelum mencari
+            loadInitialData();
+            const b = bottles.find(x => x.code === code);
+            const res = document.getElementById('replyResult');
+            
+            res.classList.remove('hidden');
+            if(!b) {
+                res.innerHTML = "❌ <span class='text-xs opacity-60'>Botol tidak ditemukan di pesisir. Periksa kembali kodemu.</span>";
+            } else if(!b.reply) {
+                res.innerHTML = "⏳ <span class='text-xs opacity-60 text-blue-300'>Botolmu sudah di Mercusuar, namun Penjaga belum memberikan balasan. Cek lagi nanti ya.</span>";
+            } else {
+                res.innerHTML = `
+                    <div class="text-[10px] text-cyan-400 mb-2 font-sans tracking-widest uppercase font-bold">Balasan Penjaga:</div>
+                    <div class="text-white text-lg">${b.reply}</div>
+                `;
+            }
+        }
+
+        // -- ADMIN LOGIC --
+        function loginAdmin() {
+            const user = document.getElementById('adminUser').value.trim();
+            const pin = document.getElementById('adminPin').value.trim();
+
+            if(user === ADMIN_CREDENTIALS.user && pin === ADMIN_CREDENTIALS.pin) {
+                isAdminLoggedIn = true;
+                switchView('admin');
+                document.getElementById('adminUser').value = "";
+                document.getElementById('adminPin').value = "";
+            } else {
+                alert("Identitas Penjaga tidak valid!");
+            }
+        }
+
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            switchView('user');
+        }
+
+        function renderAdminList() {
+            loadInitialData(); // Pastikan data paling fresh
+            const list = document.getElementById('adminList');
+            const counter = document.getElementById('bottleCount');
+            list.innerHTML = "";
+            
+            counter.innerText = `${bottles.length} botol terdampar di pantai.`;
+
+            if(bottles.length === 0) {
+                list.innerHTML = "<div class='col-span-full text-center py-24 opacity-30'>Pesisir masih sangat tenang, belum ada botol yang mendarat.</div>";
+                return;
+            }
+
+            const sortedBottles = [...bottles].sort((a, b) => {
+                if (a.reply === "" && b.reply !== "") return -1;
+                if (a.reply !== "" && b.reply === "") return 1;
+                return b.id - a.id;
+            });
+
+            sortedBottles.forEach(b => {
+                const card = document.createElement('div');
+                card.className = `p-5 rounded-2xl border transition-all ${b.reply ? 'bg-slate-900/40 border-white/5 opacity-60' : 'bg-blue-900/20 border-blue-500/30 shadow-lg shadow-blue-500/10'}`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="bg-yellow-500/20 text-yellow-500 text-[10px] px-2 py-1 rounded font-mono font-bold">${b.code}</span>
+                        <span class="text-[9px] opacity-40">${b.timestamp}</span>
+                    </div>
+                    <p class="paper-font text-sm mb-4 line-clamp-4 leading-relaxed italic text-slate-200">"${b.message}"</p>
+                    ${b.reply ? 
+                        `<div class="text-[10px] text-green-400 border-t border-white/5 pt-3">
+                            <span class="font-bold uppercase block mb-1">Balasanmu:</span> 
+                            <p class="opacity-90 italic">"${b.reply}"</p>
+                        </div>` : 
+                        `<button onclick="openReplyModal(${b.id})" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition-colors mt-2 uppercase">Baca & Beri Semangat</button>`
+                    }
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function openReplyModal(id) {
+            currentEditingId = id;
+            const b = bottles.find(x => x.id === id);
+            document.getElementById('curhatOriginal').innerText = `"${b.message}"`;
+            document.getElementById('replyModal').classList.remove('hidden');
+            document.getElementById('sendReplyBtn').onclick = submitReply;
+        }
+
+        function closeReplyModal() {
+            document.getElementById('replyModal').classList.add('hidden');
+            document.getElementById('replyText').value = "";
+        }
+
+        function submitReply() {
+            const text = document.getElementById('replyText').value.trim();
+            if(!text) return;
+
+            const index = bottles.findIndex(x => x.id === currentEditingId);
+            if(index !== -1) {
+                bottles[index].reply = text;
+                bottles[index].status = 'replied';
+                saveData();
+                closeReplyModal();
+                renderAdminList();
+            }
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem('lighthouse_bottles', JSON.stringify(bottles));
+            } catch (e) {
+                console.error("Gagal menyimpan ke penyimpanan browser:", e);
+                alert("Penyimpanan penuh! Beberapa surat mungkin tidak tersimpan.");
+            }
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(bottles, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "arsip_curhat_mercusuar.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'Escape') {
+                closeReplyModal();
+                if(!document.getElementById('loginAdminView').classList.contains('hidden')) switchView('user');
+            }
+        });
+    </script>
+</body>
+</html> 
